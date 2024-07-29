@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "meetups",
+  "info": {
+    "singularName": "meetup",
+    "pluralName": "meetups",
+    "displayName": "Meetup",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "pluginOptions": {},
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "pluginOptions": {},
+      "type": "text",
+      "required": true
+    },
+    "date": {
+      "pluginOptions": {},
+      "type": "date",
+      "required": true
+    },
+    "visibility": {
+      "pluginOptions": {},
+      "type": "enumeration",
+      "enum": [
+        "private",
+        "public"
+      ],
+      "required": false,
+      "default": "public"
+    },
+    "location_id": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::location.location"
+    }
+  }
+}
