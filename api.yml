@@ -1,0 +1,1580 @@
+openapi: 3.0.0
+info:
+  title: JSLovers API
+  description: API for JSLovers community website
+  version: 1.0.0
+  contact:
+    name: JSLovers Team
+    url: https://github.com/jslovers/jslovers-official-website
+
+servers:
+  - url: https://api.jslovers.com/v1
+    description: Production server
+  - url: https://api-staging.jslovers.com/v1
+    description: Staging server
+
+tags:
+  - name: Chapters
+    description: Endpoints for managing community chapters
+  - name: Meetups
+    description: Endpoints for managing meetups and workshops
+  - name: Speakers
+    description: Endpoints for managing speaker profiles and talks
+  - name: Jobs
+    description: Endpoints for managing job listings
+  - name: Users
+    description: Endpoints for user management
+  - name: Collaborations
+    description: Endpoints for managing sponsors and community partners
+  - name: Roles
+    description: Endpoints for user roles and permissions
+
+paths:
+  # Chapters
+  /chapters:
+    get:
+      summary: Get all chapters
+      tags: [Chapters]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        200:
+          description: List of chapters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Chapter'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      summary: Create a new chapter
+      tags: [Chapters]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChapterInput'
+      responses:
+        201:
+          description: Chapter created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+
+  /chapters/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get chapter by ID
+      tags: [Chapters]
+      responses:
+        200:
+          description: Chapter details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+    put:
+      summary: Replace chapter by ID
+      tags: [Chapters]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChapterInput'
+      responses:
+        200:
+          description: Chapter updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+    patch:
+      summary: Update chapter fields by ID
+      tags: [Chapters]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - operation
+                  - path
+                  - value
+                properties:
+                  operation:
+                    type: string
+                    description: The operation to perform (e.g., replace, add, remove)
+                  path:
+                    type: string
+                    description: The JSON Pointer path to the field to update
+                  value:
+                    type: string
+                    description: The JSON Pointer value of the field to update
+      responses:
+        200:
+          description: Chapter updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+    delete:
+      summary: Delete chapter by ID
+      tags: [Chapters]
+      security:
+        - BearerAuth: []
+      responses:
+        204:
+          description: Chapter deleted successfully
+
+  /chapters/{id}/members:
+    get:
+      summary: Get paginated list of users in a chapter
+      tags: [Chapters]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Chapter ID
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Number of users per page
+      responses:
+        200:
+          description: Paginated list of users in the chapter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      summary: Add users to a chapter (subscribe users)
+      tags: [Chapters]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Chapter ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  example: ["507f1f77bcf86cd799439013", "507f1f77bcf86cd799439014"]
+              required:
+                - userIds
+      responses:
+        200:
+          description: Users added to chapter successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  addedUserIds:
+                    type: array
+                    items:
+                      type: string
+                    example: ["507f1f77bcf86cd799439013", "507f1f77bcf86cd799439014"]
+
+  /chapters/{id}/members/{userId}:
+    delete:
+      summary: Remove a user from a chapter (unsubscribe user)
+      tags: [Chapters]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Chapter ID
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: User ID to remove
+      responses:
+        200:
+          description: User removed from chapter successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  removedUserId:
+                    type: string
+                    example: "507f1f77bcf86cd799439013"
+  # Meetups
+  /meetups:
+    get:
+      summary: Get all meetups
+      tags: [Meetups]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+          description: Page number for pagination
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: Number of items per page
+      responses:
+        200:
+          description: List of meetups
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Meetup'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      summary: Create a new meetup
+      tags: [Meetups]
+      security:
+        - BearerAuth: []
+      requestBody:
+        description: Meetup to create
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeetupInput'
+      responses:
+        201:
+          description: Meetup created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meetup'
+
+  /meetups/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get meetup by ID
+      tags: [Meetups]
+      responses:
+        200:
+          description: Meetup details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meetup'
+    put:
+      summary: Replace meetup by ID
+      tags: [Meetups]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeetupInput'
+      responses:
+        200:
+          description: Meetup updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meetup'
+    patch:
+      summary: Update meetup fields by ID
+      tags: [Meetups]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - operation
+                  - path
+                  - value
+                properties:
+                  operation:
+                    type: string
+                    description: The operation to perform (e.g., replace, add, remove)
+                  path:
+                    type: string
+                    description: The JSON Pointer path to the field to update
+                  value:
+                    type: string
+                    description: The JSON Pointer value of the field to update
+      responses:
+        200:
+          description: Meetup updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Meetup'
+    delete:
+      summary: Delete meetup by ID
+      tags: [Meetups]
+      security:
+        - BearerAuth: []
+      responses:
+        204:
+          description: Meetup deleted successfully
+
+  # Speakers
+  /speakers:
+    get:
+      summary: Get all speakers
+      tags: [Speakers]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        200:
+          description: List of speakers (users with the 'speaker' role)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /speakers/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get speaker by ID
+      tags: [Speakers]
+      responses:
+        200:
+          description: Speaker details (user with the 'speaker' role)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /speakers/{id}/meetups:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: limit
+        schema:
+          type: integer
+    get:
+      summary: Get all meetups attended by a speaker
+      tags: [Speakers]
+      responses:
+        200:
+          description: List of meetups attended by the speaker
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Meetup'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+  # Jobs
+  /jobs:
+    get:
+      summary: Get all job listings
+      tags: [Jobs]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: company
+          schema:
+            type: string
+        - in: query
+          name: role
+          schema:
+            type: string
+        - in: query
+          name: isRemote
+          schema:
+            type: boolean
+      responses:
+        200:
+          description: List of jobs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Job'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      summary: Create a job listing
+      tags: [Jobs]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobInput'
+      responses:
+        201:
+          description: Job created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+
+  /jobs/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get job by ID
+      tags: [Jobs]
+      responses:
+        200:
+          description: Job details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+    put:
+      summary: Replace job by ID
+      tags: [Jobs]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobInput'
+      responses:
+        200:
+          description: Job updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+    patch:
+      summary: Update job fields by ID
+      tags: [Jobs]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - operation
+                  - path
+                  - value
+                properties:
+                  operation:
+                    type: string
+                    description: The operation to perform (e.g., replace, add, remove)
+                  path:
+                    type: string
+                    description: The JSON Pointer path to the field to update
+                  value:
+                    type: string
+                    description: The JSON Pointer value of the field to update
+      responses:
+        200:
+          description: Job updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+    delete:
+      summary: Delete job by ID
+      tags: [Jobs]
+      security:
+        - BearerAuth: []
+      responses:
+        204:
+          description: Job deleted successfully
+
+  # Users
+  /users:
+    get:
+      summary: Get all users
+      tags: [Users]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+      responses:
+        200:
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      summary: Create a new user
+      tags: [Users]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        201:
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get user by ID
+      tags: [Users]
+      responses:
+        200:
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    put:
+      summary: Replace user by ID
+      tags: [Users]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        200:
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    patch:
+      summary: Update user fields by ID
+      tags: [Users]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - operation
+                  - path
+                  - value
+                properties:
+                  operation:
+                    type: string
+                    description: The operation to perform (e.g., replace, add, remove)
+                  path:
+                    type: string
+                    description: The JSON Pointer path to the field to update
+                  value:
+                    type: string
+                    description: The JSON Pointer value of the field to update
+      responses:
+        200:
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      summary: Delete user by ID
+      tags: [Users]
+      security:
+        - BearerAuth: []
+      responses:
+        204:
+          description: User deleted successfully
+
+  # Collaborations (Sponsors)
+  /collaborations:
+    get:
+      summary: Get all sponsors and collaborations
+      tags: [Collaborations]
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [sponsor, collaborator]
+          description: Filter by type (sponsor or collaborator)
+        - in: query
+          name: chapterId
+          schema:
+            type: string
+          description: Filter by chapter ID
+      responses:
+        200:
+          description: List of sponsors/collaborations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collaboration'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+    post:
+      summary: Add a sponsor or collaboration partner
+      tags: [Collaborations]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationInput'
+      responses:
+        201:
+          description: Collaboration created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+
+  /collaborations/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get collaboration by ID
+      tags: [Collaborations]
+      responses:
+        200:
+          description: Collaboration details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+    put:
+      summary: Replace collaboration by ID
+      tags: [Collaborations]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollaborationInput'
+      responses:
+        200:
+          description: Collaboration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+    patch:
+      summary: Update collaboration fields by ID
+      tags: [Collaborations]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - operation
+                  - path
+                  - value
+                properties:
+                  operation:
+                    type: string
+                    description: The operation to perform (e.g., replace, add, remove)
+                  path:
+                    type: string
+                    description: The JSON Pointer path to the field to update
+                  value:
+                    type: string
+                    description: The JSON Pointer value of the field to update
+      responses:
+        200:
+          description: Collaboration updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collaboration'
+    delete:
+      summary: Delete collaboration by ID
+      tags: [Collaborations]
+      security:
+        - BearerAuth: []
+      responses:
+        204:
+          description: Collaboration deleted successfully
+
+  # Roles
+  /roles:
+    get:
+      summary: Get all roles
+      tags: [Roles]
+      responses:
+        200:
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+    post:
+      summary: Create a new role
+      tags: [Roles]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        201:
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+
+  /roles/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Get role by ID
+      tags: [Roles]
+      responses:
+        200:
+          description: Role details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    put:
+      summary: Replace role by ID
+      tags: [Roles]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        200:
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    patch:
+      summary: Update role fields by ID
+      tags: [Roles]
+      security:
+        - BearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required:
+                  - operation
+                  - path
+                  - value
+                properties:
+                  operation:
+                    type: string
+                    description: The operation to perform (e.g., replace, add, remove)
+                  path:
+                    type: string
+                    description: The JSON Pointer path to the field to update
+                  value:
+                    type: string
+                    description: The JSON Pointer value of the field to update
+      responses:
+        200:
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+    delete:
+      summary: Delete role by ID
+      tags: [Roles]
+      security:
+        - BearerAuth: []
+      responses:
+        204:
+          description: Role deleted successfully
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    Meetup:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        chapterId:
+          type: string
+          example: "507f1f77bcf86cd799439012"
+          description: "ID of the chapter this meetup belongs to"
+        title:
+          type: string
+          example: "ReactJS Beginners Workshop"
+        description:
+          type: string
+          example: "An introductory workshop for ReactJS"
+        startTime:
+          type: string
+          format: date-time
+          example: "2025-06-20T09:00:00Z"
+        endTime:
+          type: string
+          format: date-time
+          example: "2025-06-20T12:00:00Z"
+        location:
+          $ref: '#/components/schemas/Location'
+        speakers:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        isRemote:
+          type: boolean
+          example: false
+        onlineLink:
+          type: string
+          format: uri
+          description: Link to the online meetup (if isRemote is true)
+          example: "https://meet.jslovers.com/abc123"
+        updated:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        created:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        createdBy:
+          type: string
+          description: "User ID of the creator"
+          example: "507f1f77bcf86cd799439013"
+        updatedBy:
+          type: string
+          description: "User ID of the last updater"
+          example: "507f1f77bcf86cd799439014"
+        ratings:
+          type: array
+          description: List of ratings given to this meetup/session
+          items:
+            type: object
+            properties:
+              rating:
+                type: number
+                format: float
+                minimum: 1
+                maximum: 5
+                example: 4.0
+              reviewerId:
+                type: string
+                description: User ID of the reviewer
+                example: "507f1f77bcf86cd799439015"
+              comment:
+                type: string
+                description: Optional comment for the rating
+                example: "Great session!"
+              created:
+                type: string
+                format: date-time
+                description: When the rating was given
+                example: "2025-06-20T12:30:00Z"
+
+    MeetupInput:
+      type: object
+      required:
+        - title
+        - description
+        - startTime
+        - endTime
+      properties:
+        title:
+          type: string
+          description: Title of the meetup
+          example: "ReactJS Beginners Workshop"
+        description:
+          type: string
+          description: Detailed description
+          example: "An introductory workshop for ReactJS."
+        startTime:
+          type: string
+          format: date-time
+          description: Start time of the meetup
+          example: "2025-06-20T09:00:00Z"
+        endTime:
+          type: string
+          format: date-time
+          description: End time of the meetup
+          example: "2025-06-20T12:00:00Z"
+        location:
+          $ref: '#/components/schemas/LocationInput'
+        speakerIds:
+          type: array
+          items:
+            type: string
+            example: "507f1f77bcf86cd799439013"
+        isRemote:
+          type: boolean
+          example: false
+        onlineLink:
+          type: string
+          format: uri
+          description: Link to the online meetup (if isRemote is true)
+          example: "https://meet.jslovers.com/abc123"
+
+    Job:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439021"
+        companyName:
+          type: string
+          example: "Awesome Inc"
+        role:
+          type: string
+          example: "Frontend Developer"
+        location:
+          type: object
+          properties:
+            city:
+              type: string
+              example: "Berlin"
+            country:
+              type: string
+              example: "Germany"
+        isRemote:
+          type: boolean
+          example: true
+        experience:
+          type: string
+          example: "3+ years"
+        companyLogo:
+          type: string
+          example: "https://example.com/logos/awesome.png"
+        description:
+          type: string
+          example: "Exciting opportunity to work with a fast-growing team."
+        jobLink:
+          type: string
+          format: uri
+          example: "https://company.com/careers/frontend-dev"
+          description: Link to the job posting
+        jobType:
+          type: string
+          enum: [fulltime, parttime]
+          example: fulltime
+          description: Whether the job is fulltime or part time
+        status:
+          type: string
+          enum: [open, closed]
+          example: open
+          description: Status of the job (open or closed)
+        updated:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        created:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        createdBy:
+          type: string
+          description: "User ID of the creator"
+          example: "507f1f77bcf86cd799439013"
+        updatedBy:
+          type: string
+          description: "User ID of the last updater"
+          example: "507f1f77bcf86cd799439014"
+
+    JobInput:
+      type: object
+      required:
+        - companyName
+        - role
+      properties:
+        companyName:
+          type: string
+          example: "Awesome Inc"
+        role:
+          type: string
+          example: "Frontend Developer"
+        location:
+          type: object
+          properties:
+            city:
+              type: string
+              example: "Berlin"
+            country:
+              type: string
+              example: "Germany"
+        isRemote:
+          type: boolean
+          example: true
+        experience:
+          type: string
+          example: "3+ years"
+        companyLogo:
+          type: string
+          example: "https://example.com/logos/awesome.png"
+        description:
+          type: string
+          example: "Exciting opportunity to work with a fast-growing team."
+        jobLink:
+          type: string
+          format: uri
+          example: "https://company.com/careers/frontend-dev"
+          description: Link to the job posting
+        jobType:
+          type: string
+          enum: [fulltime, parttime]
+          example: fulltime
+          description: Whether the job is fulltime or part time
+        status:
+          type: string
+          enum: [open, closed]
+          example: open
+          description: Status of the job (open or closed)
+        requirements:
+          type: array
+          items:
+            type: string
+            example: "JavaScript"
+        responsibilities:
+          type: array
+          items:
+            type: string
+            example: "Develop and maintain frontend features."
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439013"
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Smith"
+        email:
+          type: string
+          format: email
+          example: "john.smith@example.com"
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+          description: List of roles assigned to the user
+        designation:
+          type: string
+          example: "Senior Developer"
+        company:
+          type: string
+          example: "Tech Corp"
+        description:
+          type: string
+          example: "Passionate about JavaScript and community building."
+        imageSrc:
+          type: string
+          example: "https://example.com/images/jane.jpg"
+        socials:
+          type: array
+          items:
+            type: object
+            properties:
+              platform:
+                type: string
+                example: "Twitter"
+              href:
+                type: string
+                example: "https://twitter.com/janedoe"
+        isActive:
+          type: boolean
+          example: true
+        updated:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        created:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        createdBy:
+          type: string
+          description: "User ID of the creator"
+          example: "507f1f77bcf86cd799439013"
+        updatedBy:
+          type: string
+          description: "User ID of the last updater"
+          example: "507f1f77bcf86cd799439014"
+        ratings:
+          type: array
+          description: List of ratings given to this speaker
+          items:
+            type: object
+            properties:
+              rating:
+                type: number
+                format: float
+                minimum: 1
+                maximum: 5
+                example: 4.5
+              reviewerId:
+                type: string
+                description: User ID of the reviewer
+                example: "507f1f77bcf86cd799439015"
+              comment:
+                type: string
+                description: Optional comment for the rating
+                example: "Excellent talk!"
+              created:
+                type: string
+                format: date-time
+                description: When the rating was given
+                example: "2025-06-20T12:30:00Z"
+        chapters:
+          type: array
+          description: List of chapter IDs this user is a member of
+          items:
+            type: string
+            example: "507f1f77bcf86cd799439012"
+
+    UserInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - roles
+      properties:
+        firstName:
+          type: string
+          example: "John"
+        lastName:
+          type: string
+          example: "Smith"
+        email:
+          type: string
+          format: email
+          example: "john.smith@example.com"
+        roles:
+          type: array
+          items:
+            type: string
+            example: "507f1f77bcf86cd799439016"
+          description: List of role IDs assigned to the user
+        designation:
+          type: string
+          example: "Senior Developer"
+        company:
+          type: string
+          example: "Tech Corp"
+        description:
+          type: string
+          example: "Passionate about JavaScript and community building."
+        imageSrc:
+          type: string
+          example: "https://example.com/images/jane.jpg"
+        socials:
+          type: array
+          items:
+            type: object
+            properties:
+              platform:
+                type: string
+                example: "Twitter"
+              href:
+                type: string
+                example: "https://twitter.com/janedoe"
+        isActive:
+          type: boolean
+          example: true
+
+    Collaboration:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439031"
+        name:
+          type: string
+          example: "Tech Sponsor"
+        description:
+          type: string
+          example: "Sponsor description here"
+        website:
+          type: string
+          example: "https://techsponsor.com"
+        logo:
+          type: string
+          example: "https://techsponsor.com/logo.png"
+        type:
+          type: string
+          enum: [sponsor, collaborator]
+          description: Whether this is a sponsor or a collaborator
+          example: sponsor
+        chapterIds:
+          type: array
+          items:
+            type: string
+            example: "507f1f77bcf86cd799439012"
+          description: List of chapter IDs this sponsor/collaborator is associated with
+        updated:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        created:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        createdBy:
+          type: string
+          description: "User ID of the creator"
+          example: "507f1f77bcf86cd799439013"
+        updatedBy:
+          type: string
+          description: "User ID of the last updater"
+          example: "507f1f77bcf86cd799439014"
+
+    CollaborationInput:
+      type: object
+      required:
+        - name
+        - website
+        - type
+      properties:
+        name:
+          type: string
+          example: "Tech Sponsor"
+        description:
+          type: string
+          example: "Sponsor for the ReactJS event series."
+        website:
+          type: string
+          example: "https://techsponsor.com"
+        logo:
+          type: string
+          example: "https://techsponsor.com/logo.png"
+        type:
+          type: string
+          enum: [sponsor, collaborator]
+          description: Whether this is a sponsor or a collaborator
+          example: sponsor
+        chapterIds:
+          type: array
+          items:
+            type: string
+            example: "507f1f77bcf86cd799439012"
+          description: List of chapter IDs this sponsor/collaborator is associated with
+
+    Role:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439016"
+        name:
+          type: string
+          example: "admin"
+        description:
+          type: string
+          example: "Administrator role with full permissions"
+        updated:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        created:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        createdBy:
+          type: string
+          description: "User ID of the creator"
+          example: "507f1f77bcf86cd799439013"
+        updatedBy:
+          type: string
+          description: "User ID of the last updater"
+          example: "507f1f77bcf86cd799439014"
+
+    RoleInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "admin"
+        description:
+          type: string
+          example: "Administrator role with full permissions"
+
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439017"
+        city:
+          type: string
+          example: "New York"
+        country:
+          type: string
+          example: "USA"
+        updated:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        created:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        createdBy:
+          type: string
+          description: "User ID of the creator"
+          example: "507f1f77bcf86cd799439013"
+        updatedBy:
+          type: string
+          description: "User ID of the last updater"
+          example: "507f1f77bcf86cd799439014"
+
+    LocationInput:
+      type: object
+      required:
+        - city
+        - country
+      properties:
+        city:
+          type: string
+          example: "New York"
+        country:
+          type: string
+          example: "USA"
+
+    Chapter:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439012"
+        name:
+          type: string
+          example: "Delhi Chapter"
+        description:
+          type: string
+          example: "JSLovers Delhi community chapter."
+        location:
+          $ref: '#/components/schemas/Location'
+        admins:
+          type: array
+          items:
+            type: string
+            example: "507f1f77bcf86cd799439013"
+          description: List of user IDs who are admins of this chapter
+        membersCount:
+          type: integer
+          description: Number of users who are members of this chapter
+          example: 123
+        created:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        updated:
+          type: string
+          example: "2025-06-20T09:00:00Z"
+        createdBy:
+          type: string
+          description: "User ID of the creator"
+          example: "507f1f77bcf86cd799439013"
+        updatedBy:
+          type: string
+          description: "User ID of the last updater"
+          example: "507f1f77bcf86cd799439014"
+
+    ChapterInput:
+      type: object
+      required:
+        - name
+        - location
+      properties:
+        name:
+          type: string
+          example: "Delhi Chapter"
+        description:
+          type: string
+          example: "JSLovers Delhi community chapter."
+        location:
+          $ref: '#/components/schemas/LocationInput'
+        admins:
+          type: array
+          items:
+            type: string
+            example: "507f1f77bcf86cd799439013"
+          description: List of user IDs who are admins of this chapter
