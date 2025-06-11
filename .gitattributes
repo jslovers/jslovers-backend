@@ -1,0 +1,20 @@
+# Ensure consistent line endings and text encoding
+git config --global core.autocrlf input
+* text=auto
+*.java text diff=java
+*.yml text
+dockerfile text
+docker-compose* text
+*.md text
+*.sh text eol=lf
+*.bat text eol=crlf
+*.properties text
+*.xml text
+*.json text
+*.csv text
+*.ts text
+*.js text
+*.html text
+*.css text
+*.scss text
+*.env text
