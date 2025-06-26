@@ -32,7 +32,7 @@ This Code of Conduct applies within all community spaces, and also applies when 
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [jslovers@gmail.com](mailto:jslovers@gmail.com).
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [hello@jslovers.com](mailto:hello@jslovers.com) or [neha@jslovers.com](mailto:neha@jslovers.com).
 
 All complaints will be reviewed and investigated promptly and fairly.
 

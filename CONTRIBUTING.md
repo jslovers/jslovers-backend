@@ -26,4 +26,4 @@ Thank you for considering contributing to this project! Here are some guidelines
 - Use GitHub Issues and label as `enhancement`.
 
 ## Questions
-- Open an issue or email [jslovers@gmail.com](mailto:jslovers@gmail.com).
+- Open an issue or email [hello@jslovers.com](mailto:hello@jslovers.com) or [neha@jslovers.com](mailto:neha@jslovers.com).
