@@ -19,14 +19,12 @@ A Spring Boot API backend for the jslovers community. This project follows open 
 
 #### Run with Maven
 ```
-cd backend
 mvn spring-boot:run
 ```
 
 #### Run with Docker
 Build the JAR:
 ```
-cd backend
 mvn clean package -DskipTests
 ```
 Build and run the container:
@@ -40,7 +38,7 @@ docker-compose up --build
 ```
 
 > **Note:**
-> If you see an error like `failed to solve: lstat /backend/target: no such file or directory`, make sure you have built the JAR file first using the Maven command above. The Docker build expects `backend/target/*.jar` to exist.
+> If you see an error like `failed to solve: lstat /target: no such file or directory`, make sure you have built the JAR file first using the Maven command above. The Docker build expects `target/*.jar` to exist.
 
 The api will be running at: http://localhost:8080/swagger-ui/index.html
 
