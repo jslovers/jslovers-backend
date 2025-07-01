@@ -17,6 +17,17 @@ A Spring Boot API backend for the jslovers community. This project follows open 
 
 ### Local Development
 
+#### MongoDB Connection
+This project uses MongoDB as its database. The connection URI is supplied via the environment variable `SPRING_DATA_MONGODB_URI`. You must set this variable in your environment, regardless of how you run the project (Docker, local, CI, etc.).
+
+- **Docker Compose:** The variable is set in `docker-compose.yml`.
+- **Local/IDE:** Set it in your shell before running:
+  ```sh
+  export SPRING_DATA_MONGODB_URI=mongodb://localhost:27017/jslovers
+  mvn spring-boot:run
+  ```
+- **.env file:** You can also use a `.env` file if your tooling supports it.
+
 #### Run with Maven
 ```
 mvn spring-boot:run
